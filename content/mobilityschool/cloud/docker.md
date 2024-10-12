@@ -2,7 +2,6 @@
 title: Docker
 weight: 6
 ---
-## Docker
 ### Container & 가상화
 - 가상화
   - 서버, 스토리지, 네트워크 및 물리적 시스템에 대한 가상 표현을 생성하는데 사용할 수 있는 기술
@@ -209,7 +208,7 @@ sudo service docker restart
   - `docker container logs 컨테이너ID`
 
 ## Docker 활용
-### DOcker Hub와 Docker Registry
+### Docker Hub와 Docker Registry
 - Docker Registry: Image를 배포하는 장소
 - Docker Hub: Docker 제작사에서 운영하는 공식 Docker Registry
   - Apache나 MySQL, Ubuntu의 공식 Image가 전부 Docker Hub에 참여해서 Image를 배포하는데 run 명령을 수행했을 때 내려받는 이미지는 여기서 다운로드
@@ -235,8 +234,8 @@ sudo service docker restart
     - 개수 제한을 할 때는 `--limit 개수` 옵션을 이용
 
 ### 도커 이미지 다운로드
-  - 기본형식
-    - `docker [image] pull [Options] 이미지이름[:TAG | @Image Digest]`
+- 기본형식
+  - `docker [image] pull [Options] 이미지이름[:TAG | @Image Digest]`
 - debian 이미지 다운로드
   - `docker pull debian`
   - 태그를 붙이지 않으면 자동으로 latest 버전이 지정이 됨. 이미지 앞에 library는 도커 허브라 이미지를 저장하고 있는 네임스페이스
@@ -267,22 +266,22 @@ sudo service docker restart
   - SIZE: 이미지의 크기
 
 ### 도커 이미지 세부 정보 조회
-  - 명령어 형식
-    - `docker image inspect [options] 이미지이름 [이미지 이름 나열..]`
-    - 옵션은 `--format`이나 `-f`뒤에 JSON을 설정해서 JSON 형식으로 세부 정보를 출력하는데 이 때 정보 이름을 사용할 수 있음
-  - 주요 정보
-    - image ID: Id
-    - 생성일: Created
-    - 도커버전: DockerVersion
-    - 이미지 다이제스트 정보: RootFS
-    - 이미지 레이어 정보: GraphDriver
-  - httpd라는 이미지를 검색해서 최신 버전을 다운로드
-    - `docker search httpd`
-    - `docker pull httpd:latest`
-  - httpd의 상세 정보 확인
-    - `docker image inspect httpd`
-  - httpd 의 운영체제만 확인
-    - `docker image inspect --format="{{.Os}}" httpd`
+- 명령어 형식
+  - `docker image inspect [options] 이미지이름 [이미지 이름 나열..]`
+  - 옵션은 `--format`이나 `-f`뒤에 JSON을 설정해서 JSON 형식으로 세부 정보를 출력하는데 이 때 정보 이름을 사용할 수 있음
+- 주요 정보
+  - image ID: Id
+  - 생성일: Created
+  - 도커버전: DockerVersion
+  - 이미지 다이제스트 정보: RootFS
+  - 이미지 레이어 정보: GraphDriver
+- httpd라는 이미지를 검색해서 최신 버전을 다운로드
+  - `docker search httpd`
+  - `docker pull httpd:latest`
+- httpd의 상세 정보 확인
+  - `docker image inspect httpd`
+- httpd 의 운영체제만 확인
+  - `docker image inspect --format="{{.Os}}" httpd`
 ### 이미지를 구성하고 있는 레이어와 실행 정보를 확인하는 명령
 - 기본 형식
   - `docker image history [옵션] 이미지 이름`
