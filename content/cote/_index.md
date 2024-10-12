@@ -1,5 +1,5 @@
 ---
-cascade:
-  type: docs
+sidebar:
+  open: true
 weight: 3
 ---
