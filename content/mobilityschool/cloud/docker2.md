@@ -133,13 +133,13 @@ docker login -u 이름 을 입력하면 콘솔에서 로그인을 시도
 
 - 이미지 확인: `docker images`
 
-- 이름을 변경해서 불러올 때는 docker import 를 사용
+- 이름을 변경해서 불러올 때는 docker import 를 사용<br>
 - `cat test-mysql57.tar | docker import - mysql57:1.0`
 
-- 용량을 줄이고자 하면 gzip 옵션을 이용
+- 용량을 줄이고자 하면 gzip 옵션을 이용<br>
 `docker image save mysql:5.7 | gzip > test-mysql57gzip.tar.gz`
 
-- 스크립트 변수 방식을 이용해서 도커의 전체 이미지를 하나로 묶는 것도 가능(docker image ls -q 명령은 이미지의 ID를 전부 출력)
+- 스크립트 변수 방식을 이용해서 도커의 전체 이미지를 하나로 묶는 것도 가능(docker image ls -q 명령은 이미지의 ID를 전부 출력)<br>
 `docker image save -o all_image.tar $(docker image ls -q)`
 
 ## 이미지 삭제
@@ -168,7 +168,7 @@ $ source .bashrc
 $ alias
 ```
 - 사용 중이 아닌 모든 이미지 제거: `docker image prune -a`
-- 용 중이 아닌 48시간 이전 이미지 제거: `docker image prune -a -f --filter 'until=48h'`
+- 사용중이 아닌 48시간 이전 이미지 제거: `docker image prune -a -f --filter 'until=48h'`
 
 ## 컨테이너 관련 명령어
 ### 컨테이너
