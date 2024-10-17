@@ -357,7 +357,7 @@ services:
     image: mysql:8.0
     container_name: mysql_app
     volumes:
-      - mydb_data: /var/lib/mysql
+      - mydb_data:/var/lib/mysql
     restart: always
     ports:
       - "3306:3306"
@@ -396,3 +396,8 @@ networks:
   frontend-net: {}
   backend-net: {}
 ```
+  - 실행
+```
+docker-compose up -d
+```
+  - volume 에러가 나면 volume 지우고 수행
