@@ -24,7 +24,8 @@ weight: 7
 ### 이미지가 다운로드 디렉토리 확인
 - /var/lib/docker/image/overlay2/layerdb/sha256
 - 이미지 저장소 확인(관리자 모드에서만 가능)
-```#sudo su -
+```
+#sudo su -
 
 #/var/lib/docker/image/overlay2/layerdb/sha256
 
