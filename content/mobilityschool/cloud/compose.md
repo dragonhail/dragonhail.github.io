@@ -150,7 +150,7 @@ $ docker ps
 $ docker stop $(docker ps -aq)
 ```
 
-7. docker0compose를 이용한 실행
+7. docker compose를 이용한 실행
 - docker-compose.yml 파일을 생성하고 작성
 ```yml
 version: '3'
