@@ -508,12 +508,11 @@ git push origin main
 - repository 생성
   - dockercicd
 - token 발급
-  - dckr_pat_aT488DlkindUTeB_DPXPP4EqkAw
 
-8. git hub에서 유저 이름 과 token 을 secret 으로 생성
+1. git hub에서 유저 이름 과 token 을 secret 으로 생성
 - DOCKERHUB_TOKEN과 DOCKERHUB_USERNAME
 
-9. 소스 코드가 있는 디렉터리에 .github/workflows 디렉터리를 생성하고 yaml파일을 만들어서 작성: 파일 이름은 상관 없음
+1. 소스 코드가 있는 디렉터리에 .github/workflows 디렉터리를 생성하고 yaml파일을 만들어서 작성: 파일 이름은 상관 없음
 
 ```yaml
 name: "dockercicd"
