@@ -471,7 +471,7 @@ docker build -t goapp:1.0 .
 docker run --name goapp-deploy goapp:1.0
 ```
 5. 코드를 저장하기 위한 git hub 작업
-- git hub에서 토큰 발급(한 번 발급받으면 토큰을 다시 보여주지 않음) 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
+- git hub에서 토큰 발급(한 번 발급받으면 토큰을 다시 보여주지 않음) 
 - repository 생성 https://github.com/dragonhail/newrepo.git
 
 6. code를 git에 업로드
