@@ -6,7 +6,7 @@ weight: 11
 - 모든 컨테이너 중지: `docker stop $(docker ps -a -q)`
 - 모든 컨테이너 삭제: `docker rm $(docker ps -a -q)`
 - 모든 이미지 삭제: `docker rmi $(docker images -q)`
-
+- 
 ## Dockerfile 작성 주의 사항
 #### 안바뀔것 같은 것을 위에 작성
 #### RUN 명령어는 한 번에 작성할 수 있는 것은 한번에 작성하는 것이 좋음, 이미지 용량을 줄이기 위해
