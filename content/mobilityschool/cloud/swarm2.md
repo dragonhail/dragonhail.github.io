@@ -173,3 +173,34 @@ sudo systemctl stop firewalld.service
   - `docker service create --name=viz_swarm -p 7070:8080 --constraint=node.role==manager --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock dockersmaples/visualizer`
 - 스웜 모드를 GUI로 관리하기 위한 도구
   - `docker run -it --rm --name swarmpit --volume /var/run/docker.sock:/var/run/docker.socket swarmpit/install`
+
+### 서비스 배포
+- `docker run` 대신에 `docker service create`를 이용하는데 `docker run` 명령과 거의 유사
+- nginx, busybox, alpine:3
+
+### 서비스 생성 실습
+- swarm-manager 컴퓨터를 인터넷이 되도록 설정해서 nginx, busybox, alpine:3 이미지 다운로드
+- swarm-manager 컴퓨터에서 docker swarm 모드 초기화
+- alpine:3 버전을 이용한 서비스 생성
+  - `docker service create --name swarm-start alpine:3 /bin/sh -c "while true; do echo'Docker Swarm mode Start'; sleep 3; done"`
+- 서비스 확인: `docker service ls`
+- 컨테이너 정보 확인: `docker service ps 컨테이너이름`
+- 로그 확인: `docker service logs -f 컨테이너아이디`
+- 서비스 중지: `docker service rm 컨테이너이름`
+
+### docker-compose `--scale` 옵션 과 docker swarm 의 replica 와 차이점
+- docker-compose 에서 scale 옵션은 하나의 노드(도커 엔진)에 여러 개의 컨테이너를 생성하는 것이고 docker swarm은 여러 도커 엔진에 여러 개의 컨테이너를 생성하는 것
+- docker-compose에서 scale 옵션을 이용해서 하나의 이미지로 여러 개의 컨테이너로 만들 때 주의할 점은 포트를 외부로 노출한다면 포트 여러 개를 매핑해야 함
+
+- swarm-manager에서 nginx 서비스를 2개 생성
+  - `docker service create --name web-alb --constraint node.rol==worker --replicas 2 --8001:80 nginx`
+  - 여러 개의 서비스를 만들고자 하는 경우는 replicas 옵션을 이용하는데 이 때 노드의 개수보다 더 많은 서비스 개수를 요청하면 특정 노드에 여러 개가 배치됨
+- 서비스를 만들 때 mode를 global로 설정하면 모든 노드에 전부 생성
+- global을 설정하면 노드가 추가되는 경우 자동으로 확장이 됨
+- replicas를 이용해서 컨테이너를 생성하면 자동 복구 기능을 사용할 수 있음
+- service update를 수행하면 롤링 업데이트를 수행
+  - 서비스를 만들 때 --update-delay 옵션을 이용해서 하나가 업데이트가 되고 난 후 얼마나 대기 할 것인지 설정할 수 있음
+  - 서비스를 만들 때 옵션을 지정하지 않으면 1개씩 롤링 업데이트가 수행되지만 `--update-parallelism`에 개수를 설정하면 개수만큼 롤링 업데이트가 발생함
+  - 실패한 경우 rollback을 이용해서 이전으로 돌아갈 수 있음
+  - 돌아갈 수 있는 경우는 도커 정보를 확인하면 됨
+- docker-compose.yml 파일을 가지고 만든 컨테이너는 `docker stack deploy --compose 파일경로 서비스이름` 으로 배포함
