@@ -9,30 +9,30 @@ weight: 12
 
 - 모든 이미지 삭제: `docker rmi $(docker images -q)`
 
-1. Docker Network
+### 1. Docker Network
 - Local DNS 생성: 이름으로 서비스 접속 가능
 - 서브네팅
 
-2. Docker Layer
+### 2. Docker Layer
 - 재사용이 가능 로컬 컴퓨터에서
 - 클라우드 환경에서는 딱히
 - 레이어는 줄이는게 좋음
 
-3. CICD는 대화식 불가
+### 3. CICD는 대화식 불가
 - 자동화 불가, 사람이 계속 대기해야
 
-4. Dockerfile
+### 4. Dockerfile
 - Dockerfile에서 `apt install` 시 `-y` 옵션 항상 필요
 - `RUN apt-get update && RUN apt-get install -y --no-install-recommends && RUN rm -rf /var/lib/apt//lists/*`
   - 리눅스 업데이트 명령어, 항상 같음
 - Dockerfile의 WORKDIR은 아무거나 써도 상관 없음
-5. RUN과 CMD 차이
+### 5. RUN과 CMD 차이
 - RUN은 일반적인 스크립트로 처리
 - CMD는 묶어서 처리 가능
 
 ## Application을 github에 push 하고 이를 Dockerfile을 이용해서 이미지로 만들어서 DockerHub에 자동으로 배포하기
 
-1. 애플리케이션 생성 및 테스트
+### 1. 애플리케이션 생성 및 테스트
 - 가상환경 생성 패키지 설치
 ```bash
 sudo apt install python3-venv
@@ -99,7 +99,7 @@ urlpatterns = [
 ```
 - 실행 `python manage.py runserver 0.0.0.0:8000`
 
-2. Dockerfile을 이용해서 이미지를 만들고 컨테이너로 테스트
+### 2. Dockerfile을 이용해서 이미지를 만들고 컨테이너로 테스트
 - apiserver/에서 의존성을 requirements.txt 파일에 출력
 ```pip freeze > requirements.txt```
 
@@ -133,7 +133,7 @@ docker build -t apiserver .
 ```bash
 docker run -d -p 80:80 --name apiserver apiserver
 ```
-3. 코드를 git hub에 주기적으로 업로드 - CI
+### 3. 코드를 git hub에 주기적으로 업로드 - CI
 - git hub에 접속해서 repository를 생성하고 token을 발급(1번만 해두면 토큰을 계속해서 사용하는 것이 가능: 이전에는 아이디 와 비번을 이용해서 로그인을 했는데 이제는 아이디 와 토큰을 이용해서 로그인)받기
 
 - repository 이름: djangocicd
@@ -158,7 +158,7 @@ git remote add origin 저장소URL
 git push origin main
 ```
 
-4. git hub에 업로드 될 때 docker hub에 배포
+### 4. git hub에 업로드 될 때 docker hub에 배포
 - docker hub에 로그인을 해서 repositoy 와 token을 생성
   - repo: djangocicd
 
