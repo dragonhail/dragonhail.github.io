@@ -123,4 +123,53 @@ weight: 13
 - 다른 방법
   - 모든 업데이트 노드가 생성될 때까지 기다렸다가 한꺼번에 바꾸기 - 실패 시 전부 다운될 위험 
   - 새로운 버전 그대로 두기, A/B테스트 사용 예) 3개 + 업데이트3개
-- 
+
+### 도커 스웜 모드 초기 연결 구성
+#### 도커 스웜 모드 초기화(manager 에서 작업)
+- Swarm 모드 활성화 여부를 확인
+  - `docker info | grep Swarm`
+  - 현재는 inactive 상태
+- 초기화 명령: `docker swarm init --advertise-addr 매니저IP`
+  - `docker swarm init --advertise-addr 192.168.201.100`
+  - 노드가 참여할 때 사용하는 토큰 값이 출력됨
+  - Swarm 모드가 되면 2377번 포트와 7946번(작업자 노드 간의 통신을 위한 포트) 포트가 개방됨
+  - 인그레스는 4789번 포트 사용
+  - `sudo netstat -nlp | grep dockerd`
+
+#### 도커 스웜 모드 작업자 노드 연결
+- `docker swarm join --token 토큰값 매니저IP:2377`
+- swarm-worker1로 이동
+  - `docker swarm join --token SWMTKN-1-3pvhakwl5zhzc345vuno9y57gz1gacjg6qxkbqxc4fxqggh1gs-297k5lb7mpwityudsi7ljf26q 192.168.201.100:2377`
+- 매니저에서 토큰 확인: `docker swarm join-token worker`
+- 다중 매니저 노드를 구성하는 경우에는 매니저 노드 추가에 대한 조인 키도 조회가 가능: `docker swarm join-token manager`
+
+#### 스웜 명령어
+- 노드 확인: `docker node ls`
+- 도커 정보를 확인해보면 Swarm도 확인하는 것이 가능: `docker info`
+- 새로 만들어진 네트워크 확인: `docker network ls`
+```
+adam@swarm-manager:~$ docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+4810e3536dea   bridge            bridge    local
+af6a7225f58d   docker_gwbridge   bridge    local
+fb625edba68e   host              host      local
+du2xxydflei5   ingress           overlay   swarm
+b1a4049e1ff1   none              null      local
+```
+- 운영하는 도중 노드를 확장하고자 하는 경우는 새로운 토큰이 필요할 수 있는데 이 경우는 2개의 명령으로 토큰을 받는 것이 가능
+  - `docker swarm join-token --rotate worker`
+  - `docker swarm join-token -q worker`: 토큰값만 보여줌
+- Error Response from daemon: rpc error ..... 접속에러가 나는 경우에는 방화벽 때문일 수 있음
+```
+sudo ufw disable
+
+sudo ufw status
+
+sudo systemctl stop firewalld.service
+```
+- 노드 연결 중지
+  - worker: `docker swarm leave`
+- 도커 스웜 시각화 도구
+  - `docker service create --name=viz_swarm -p 7070:8080 --constraint=node.role==manager --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock dockersmaples/visualizer`
+- 스웜 모드를 GUI로 관리하기 위한 도구
+  - `docker run -it --rm --name swarmpit --volume /var/run/docker.sock:/var/run/docker.socket swarmpit/install`
