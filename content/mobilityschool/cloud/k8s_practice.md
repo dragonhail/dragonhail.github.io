@@ -111,7 +111,7 @@ kubectl run mynginx --image nginx
   kubectl cp 타겟 소스
   ```
   - 파드 안의 파일을 표현할 때 <파드이름>:>경로
-  - 호스트의 /etc/password 파일을 mynginx 컨테이너의 /tml/passwd로 복사하고자 하는 경우
+  - 호스트의 /etc/password 파일을 mynginx 컨테이너의 /tmp/passwd로 복사하고자 하는 경우
   ```
   kubectl cp /etc/password mynginx:/tmp/passwd
 
