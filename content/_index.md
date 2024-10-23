@@ -1,9 +1,5 @@
 ---
 layout: wide
-cascade:
-  type: docs
-sidebar:
-  open: false
 ---
 {{< cards >}}
   {{< card link="https://github.com/dragonhail/dart_pipeline" title="데이터 파이프라인" >}}
