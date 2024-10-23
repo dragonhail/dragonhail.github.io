@@ -5,6 +5,6 @@ weight: 4
 cascade:
   type: docs
 sidebar:
-  open: true
+  open: false
 ---
 2024/08/26 - 2025/02/26
