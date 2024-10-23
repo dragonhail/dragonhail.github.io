@@ -1,5 +1,6 @@
 ---
 sidebar:
   open: true
-weight: 3
+weight: 2
+title: 코테
 ---
