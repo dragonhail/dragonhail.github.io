@@ -20,12 +20,12 @@ weight: 14
   - 매우 큰 커뮤니티를 가진 성숙도 높은 제품
   - 아파치 메소스보다 조작이 간단하고 도커 스웜보다는 유연성이 뛰어남
 
-### 쿠버네티스 아키텍쳐
-#### 노드 유형
+## 쿠버네티스 아키텍쳐
+### 노드 유형
 - 노드는 VM, 베어메탈 호스트, 라즈베리 파이 등 다양
   - Master Node: Control Plane Application 실행을 담당
   - Worker Node: 쿠버네티스에 배포되는 애플리케이션 실행을 담당
-#### Control Plane
+### Control Plane
 - 마스터 노드에서 실행되는 애플리케이션과 서비스의 집합
 - 고도로 특화된 서비스
   - kube-apiserver: 쿠버네티스에 전송된 커맨드를 처리
@@ -33,7 +33,7 @@ weight: 14
   - kube-controller-manager: 클러스터와 클러스터에서 실행 중인 애플리케이션이 원하는 설정대로 구성되도록 고수준의 제어 루프를 제공
   - etcd: 클러스터 설정을 포함하는 분산 키-값 저장소
 - 이 컴포넌트들은 모든 마스터 노드에서 실행되는 시스템 서비스 형태로 되어 있는데 클러스터 전체를 수동으로 실행 및 생성할 수 있지만 클러스터 생성 라이브러리나 클라우드 벤더가 제공하는 서비스(EKS)를 사용하면 프로덕션 환경에서 자동으로 시작할 수 있음
-#### 쿠버네티스 API Server
+### 쿠버네티스 API Server
 - 일반적으로 443 포트를 사용해 HTTPS 요청을 받는 컴포넌트
 - 쿠버네티스 API 서버에 구성 요청시 etcd에서 현재 클러스터 설정 정보를 확인하고 필요 시 변경함
 - 쿠버네티스 API는 RESTful API
@@ -46,29 +46,29 @@ weight: 14
 파드 생성 알림, etcd 저장<--------|                       |------------------------------------------------------|
 (실제로 생성됐는지는 확인해야)    etcd  
 ```
-#### etcd
+### etcd
 - API Server는 파드를 만든다는 사실을 etcd에 알리고 사용자가에게 파드가 생성되었음을 알리는 기능을 수행
 - etcd는 클러스터의 상태를 저장하는 컴포넌트
 - key-value 형태로 저장
 
-#### 스케쥴러
+### 스케쥴러
 - 파드를 위치시킬 적당한 워커 노드를 확인하는 컴포넌트
 - 워커 노드가 확인되면 API Server에게 알리고 그러면 etcd에 파드가 생성될 것이라고 저장
 
-#### kubelet
+### kubelet
 - API Server로부터 생성될 워커 노드에 있는 kubelet에게 파드 생성 정보를 전달하고 kubelet은 이 정보를 기반으로 파드를 생성
 - 파드가 생성되면 kubelet은 API Server에 생성되었다는 사실을 알려주고 그 정보를 etcd에 업데이트(어떤 워커 노드에 어떤 파드가 생성되었는지 저장)
 
-#### Controller Manager
+### Controller Manager
 - 컴포넌트의 상태를 지속적으로 모니터링하는 동시에 실행 상태를 유지하는 역할을 수행
 - 특정 노드 와 통신이 불가능하다고 판단되면 해당 노드에 할당된 파드를 제거하고 다른 워커 노드에서 파드를 생성해 서비스가 계속되도록 함
 
-#### Proxy
+### Proxy
 - 클러스터의 모든 노드에서 실행되는 네트워크 프록시
 - 노드에 대한 네트워크 규칙을 관리
 - 클러스터 내부와 외부에 대한 통신을 담당
 
-#### Container Runtime
+### Container Runtime
 - 컨테이너 런타임은 컨테이너 실행을 담당
 - 여러 종류의 런타임을 지원하는데 최신 버전에서는 도커는 지원 중단되고 컨테이너디와 크라이오 등을 사용<br>
 
@@ -84,7 +84,7 @@ weight: 14
 ||=====================|            |-------------------------|     |
 |===================================================================|
 ```
-### 쿠버네티스 컨트롤러
+## 쿠버네티스 컨트롤러
 ```
 Deployment -> Replica Set ->
 Daemon Set ---------------->
@@ -94,7 +94,7 @@ Application Controller ---->
 ```
 - 파드를 관리하는 역할을 수행하는 객체
 
-#### Deployment
+### Deployment
 - 쿠버네티스에서 상태가 없는 애플리케이션을 배포할 때 사용하는 가장 기본적인 컨트롤러
 - 레플리카 셋의 상위 개념이면서 파드를 배포할 때 사용
 - 파드를 배포할 때는 Deployment나 서비스를 이용
@@ -113,20 +113,156 @@ spec:
  
  metadata: 파드 실행 설정
 ```
-#### ReplicaSet
+### ReplicaSet
 - 몇 개의 파드를 유지할지 결정하는 컨트롤러
 - ReplicaSet과 ReplicaController는 다름
 - ReplicaSet은 집합 기반으로 in, not in, exists 같은 연산자를 지원하지만 ReplicationController는 등호 기반이라서 =, !=를 지원
 - ReplicaSet은 롤링 업데이트를 사용할려면 Deployment를 사용해야 하지만 ReplicationController는 롤링 업데이트 옵션을 지원
 
-#### Job
+### Job
 - 하나 이상의 파드를 지정하고 지정된 수의 파드가 성공적으로 실행되도록 해주는 컨트롤러
 - 노드의 하드웨어 장애나 재부팅 등으로 파드가 비정삭적으로 작동하면 다른 노드에서 파드를 시작해 서비스가 지속되도록 함
+- manifest
 ```yml
+apiVersion: batch/v1
+kind: job
 spec:
- containers:
-  - name: job
-    image: busybox
-    command: ["echo", "job-test"]
- restartPolicy: Never
+metadata:
+  name: 잡이름
+spec:
+  template:
+    metadata:
+      name: 하나의 템플릿 이름
+    spec:
+      containers:
+        - name: 컨테이너이름
+          image: 이미지이름
+          command: [명령어]
+      restartPolicy: 정책
 ```
+
+### CronJob
+- 잡의 일종으로 특정 시간에 특정 파드를 실행시키는 것 과 같이 지정한 일정에 따라서 잡을 실행시킬 때 사용
+- 주로 애플리케이션 프로그램의 실행이나 데이터베이스의 경우 백업 등의 작업을 설정
+- manifest
+```yml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: 잡이름
+spec:
+  schedule: "* * * * *" # linux의 cron 작업과 동일
+  jobTemplate:
+    spec:
+      template:
+      metadata:
+        name: 하나의 템플릿 이름
+      spec:
+        containers:
+          - name: 컨테이너이름
+            image: 이미지이름
+            args:
+              - /bin/sh
+              - -c
+              - date; echo Hello this is Cron test
+        restartPolicy: 정책
+```
+
+### DaemonSet
+- Deployment 처럼 파드를 생성하고 관리
+- Deployment는 파드의 개수와 배포 전략을 설정하지만 데몬 셋은 특정 노드 또는 모든 노드에 파드를 배포하고 관리
+- 노드마다 배치되어야 하는 성능 수집 및 로그 수집 같은 작업에 사용
+```yml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: 이름
+  labels:
+    app: 레이블 # 데몬셋을 식별할 수 있는 레이블을 설정
+spec:
+  selector:
+    matchLabels:
+      app: 앱의 레이블
+  template:
+    metadata:
+      labels:
+        app: 앱의 레이블 # 파드의 레이블
+    spec:
+      tolerations:
+      - key: node-role/master
+        effect: NoSchedule
+```
+- taint와 tolerations
+  - 쿠버네티스 클러스터를 운영하다 보면 특정 워커 노드에는 특정 성격의 파드만 배포하고자 하는 경우가 있음
+  - GPU가 설치된 파드에는 GPU가 필요한 서비스만 배포하고자 하는 경우가 대표적
+  - 테인트가 설정된 노드에는 일반적으로 사용되는 파드는 배포될 수 없으나 톨러레이션을 적용하면 배포할 수 있음
+  - 테인트 설정 `kubectl taint node [NODE_NAME] [KEY]=[VALUE]:[EFFECT]`
+  - EFFECT에는 3가지 옵션이 있음
+    - NoSchedule: 톨러레이션이 완전치 일치하는 파드만 배포할 수 있음
+    - NoExecute: 기존에 이미 배포된 파드를 다른 노드로 옮기고 새로운 파드는 배포하지 못하도록 하는 것
+    - PreferNoSchedule: NoSchedule 과 유사하지만 지정된 노드에는 새로운 파드가 배포되지 않지만 리소스가 부족할 때는 배포할 수 있는 차이가 있음
+
+## 쿠버네티스 서비스
+```yml
+K8S Cluster
+└── Deployment
+    └── ReplicaSet (2 replicas)
+        ├── Pod (Node 1)
+        ├── Pod (Node 2)
+        └──     (Node 3)
+```
+- 파드는 쿠버네티스 클러스터 안에서 옮겨다니는 특성이 있음
+- 각각의 파드는 별도의 IP를 할당받음
+- 동적으로 변하는 파드에 고정된 방법으로 접근하기 위해서 사용하는 것이 service
+- 서비스를 사용하면 파드가 클러스터 내의 어디에 떠 있든지 고정된 주소를 이용해서 접근할 수 있음
+- 클러스터 외부에서도 접근할 수 있음
+```
+alias, symbolic link 쓰는 이유 두가지:
+  1 짧게 쓰기 위해
+  2 이름이 바뀔 수 있기 때문
+    ex Linux의 systemd -> init.d 로 바뀜
+       Linux의 bash
+      Node의 Pod이 다른 Node로 옮겨가도 IP는 바뀌지만 IP가리키는 이름은 바뀌지 않음
+agile은 같이 일하는 것, 서비스를 분할하는 것이 아닌
+```
+- 서비스의 종류
+  - Cluster IP: 쿠버네티스 클러스터 내의 파드들은 기본적으로 외부에서 접근할 수 있는 IP를 할당받지 않지만 클러스터 내부에서는 파드들이 통신할 방법을 제공하는데 이것이 클러스터 IP 입니다. 클러스터 내의 모든 파드가 해당 클러스터 IP 주소로 접근할 수 있습니다.
+  - NodePort: 서비스를 외부로 노출할 때 사용하는 것으로 노드포트로 서비스를 노출하기 위해 워커 노드의 IP 와 포트를 이용합니다. 워커 노드의 IP가 192.168.2.3 이고 30010 포트를 사용한다면 192.168.2.3:30010 포트로 외부에서 접근 가능
+  - Load Balancer: 로드 밸런서는 주로 퍼블릭 클라우드에 존재하는 로드 밸런서에 연결하고자 할 때 사용하는데 이 경우는 Load Balancer의 외부 IP를 통해서 접근
+```yml
+Load Balancer
+├── 서비스 1 (NodePort) (Public IP)
+│   └── K8S Cluster 1 (Cluster IP)
+│       └── Deployment
+│           └── ReplicaSet (2 replicas)
+│               ├── Pod (Node 1) (Private IP)
+│               ├── Pod (Node 2) (Private IP)
+│               └── Pod (Node 3)
+└── 서비스 2 (NodePort) (Public IP)
+    └── K8S Cluster 2 (Cluster IP)
+        └── Deployment
+            └── ReplicaSet (2 replicas)
+                ├── Pod (Node 1) (Private IP)
+                ├── Pod (Node 2) (Private IP)
+                └── Pod (Node 3)
+```
+- manifest
+```yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: t-service
+spec:
+  selector:
+    app: webserver #워커 노드에 떠 있는 컨테이너 중 webserver를 선택
+  ports:
+    - protocol: TCP
+      port: 80 # 서비스에서 컨테이너 애플리케이션과 매핑 시킬 포트 번호
+      targetPort: 8080 # 컨테이너에서 구동 중인 애플리케이션 포트번호
+```
+
+## 쿠버네티스 통신
+### 쿠버네티스 통신의 특징
+- 파드가 사용하는 네트워크와 호스트(노드)가 사용하는 네트워크는 다름
+- 노드 내의 파드들은 가상의 네트워크를 사용하고 호스트는 물리 네트워크를 사용
+- 
