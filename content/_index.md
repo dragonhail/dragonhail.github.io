@@ -1,7 +1,5 @@
 ---
 layout: wide
-sidebar:
-  open: false
 ---
 {{< cards >}}
   {{< card link="/cote/ title="코테" >}}<br>
