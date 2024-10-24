@@ -12,7 +12,7 @@ weight: 4
   - `kubectl create configmap <map-name> <data-source> <arguments>`
 - 문자열 상수(리터럴)를 가지고 생성
   - `kubectl create configmap [map name] --from-literal=[키]=[값]`
-```
+```bash
 kubectl create configmap my-config --from-literal=JAVA_HOME=/usr/java
 
 kubectl delete configmap my-config
@@ -25,7 +25,7 @@ kubectl describe configmap my-config
 ```
 - 파일에서 읽어서 만들기
   - 데이터를 저장하는 yaml 파일 생성하고 작성
-  ```
+  ```bash
   echo Hello Config >> configmap_test.html
 
   kubectl create configmap configmap-file --from-file configmap_test.html
