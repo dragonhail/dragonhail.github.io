@@ -1,5 +1,5 @@
 ---
-title: Deployment와 Service 사용
+title: Deployment와 Service
 weight: 3
 ---
 ## Deployment 와 Service 사용
@@ -196,3 +196,7 @@ spec:
     matchLabels:
       app: 3-replicaset
 ```
+  - 적용 `kubectl apply -f replicaset.yml`
+  - 스케일 변경: `scale` 명령과 `--replicas=개수` 옵션을 이용
+  - 삭제는 delete 명령인데 --cascade=orphan 옵션을 이용하면 pod는 유지되고 replicaset 만 없어짐
+    - `kubectl delete -f replicaset.yml --cascade=orphan`
