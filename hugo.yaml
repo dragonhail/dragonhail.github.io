@@ -22,15 +22,21 @@ menu:
     - name: CS기본
       weight: 1
       pageRef: /cs
-    - name: 모빌리티SW스쿨
+    - name: 코테
       weight: 2
+      pageRef: /cote
+    - name: 카프카
+      weight: 3
+      pageRef: /kafka
+    - name: 모빌리티SW스쿨
+      weight: 4
       pageRef: /mobilityschool/mariadb/기초/
     - name: Search
-      weight: 3
+      weight: 5
       params:
         type: search
     - name: GitHub
-      weight: 4
+      weight: 6
       url: "https://github.com/dragonhail/"
       params:
         icon: github
