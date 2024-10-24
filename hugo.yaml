@@ -30,7 +30,7 @@ menu:
       pageRef: /kafka
     - name: 모빌리티SW스쿨
       weight: 4
-      pageRef: /mobilityschool/mariadb/기초/
+      pageRef: /mobilityschool
     - name: Search
       weight: 5
       params:
