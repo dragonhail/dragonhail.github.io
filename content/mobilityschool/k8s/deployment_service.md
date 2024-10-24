@@ -168,4 +168,31 @@ spec:
 ### ReplicaSet
 - 일정한 개수의 동일한 파드가 항상 실행되도록 관리해주는 객체
 - 필요한 이유는 서비스의 지속성 때문
-- 
+- 노드의 하드웨어에서 발생항는 장애 등의 이유로 파드를 사용할 수 없을 때 다른 노드에서 다시 생성해서 사용자에게 중단없는 서비스를 제공할 수 있음
+- yml 파일을 만들어서 실행
+  - replicaset.yml 파일을 생성하고 작성
+```yml {filename="replicaset.yml"}
+apiVersion: apps/v1
+
+kind: ReplicaSet
+
+metadata:
+  name: 3-replicaset
+
+spec:
+  template:
+    metadata:
+      name: 3-replicaset
+      labels:
+        app: 3-replicaset
+    spec:
+      containers:
+      - name: 3-replicaset
+        image: nginx
+        ports:
+        - containerPort: 80
+  replicas: 3
+  selector:
+    matchLabels:
+      app: 3-replicaset
+```
