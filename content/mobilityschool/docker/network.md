@@ -1,6 +1,6 @@
 ---
 title: Network &  Dockerfile
-weight: 9
+weight: 4
 ---
 0. 컨테이너 와 이미지 모두 삭제
 - 모든 컨테이너 중지: `docker stop $(docker ps -a -q)`

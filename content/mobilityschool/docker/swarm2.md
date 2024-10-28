@@ -1,6 +1,6 @@
 ---
 title: Docker Swarm 2
-weight: 13
+weight: 8
 ---
 
 ## Virtual Box를 이용한 3개의 리눅스 서버 만들기

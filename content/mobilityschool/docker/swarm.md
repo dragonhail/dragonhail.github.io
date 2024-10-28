@@ -1,6 +1,6 @@
 ---
 title: Docker Swarm
-weight: 12
+weight: 7
 ---
 ### 리뷰
 0. 컨테이너 와 이미지 모두 삭제

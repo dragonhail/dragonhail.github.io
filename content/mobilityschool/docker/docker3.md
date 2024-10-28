@@ -1,6 +1,6 @@
 ---
 title: Docker Volume
-weight: 8
+weight: 3
 ---
 ## Docker 기본적인 명령어 사용
 ### 컨테이너와 이미지 모두 삭제

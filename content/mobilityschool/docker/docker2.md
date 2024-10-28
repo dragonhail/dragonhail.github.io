@@ -1,6 +1,6 @@
 ---
 title: Image/Container 관련 명령
-weight: 7
+weight: 2
 ---
 ## Image 관련 명령
 ### 컨테이너 삭제

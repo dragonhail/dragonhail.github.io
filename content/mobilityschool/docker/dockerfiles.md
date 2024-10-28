@@ -1,6 +1,6 @@
 ---
 title: Build & Registry & docker compose
-weight: 10
+weight: 5
 ---
 ```
 0. 컨테이너 와 이미지 모두 삭제

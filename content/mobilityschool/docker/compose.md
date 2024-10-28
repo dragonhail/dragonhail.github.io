@@ -1,6 +1,6 @@
 ---
 title: Docker Compose
-weight: 11
+weight: 6
 ---
 0. 컨테이너 와 이미지 모두 삭제
 - 모든 컨테이너 중지: `docker stop $(docker ps -a -q)`

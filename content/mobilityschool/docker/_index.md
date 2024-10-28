@@ -1,6 +1,5 @@
 ---
-title: Kubernetes
-weight: 9
+weight: 8
 sidebar:
   open: true
 ---
