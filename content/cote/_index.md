@@ -1,6 +1,7 @@
 ---
 sidebar:
   open: true
-weight: 2
+weight: -1
+type: docs
 title: 코테
 ---
