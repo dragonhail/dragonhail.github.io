@@ -2,6 +2,7 @@
 sidebar:
   open: true
 weight: -1
-type: docs
+cascade:
+  type: docs
 title: 코테
 ---
