@@ -26,7 +26,7 @@ menu:
       weight: 4
       pageRef: /airflow
     - name: 코테
-      weight: -3
+      weight: 98
       pageRef: /cote
     - name: 카프카
       weight: 2
@@ -35,11 +35,11 @@ menu:
       weight: 1
       pageRef: /mobilityschool
     - name: Search
-      weight: -2
+      weight: 99
       params:
         type: search
     - name: GitHub
-      weight: -1
+      weight: 100
       url: "https://github.com/dragonhail/"
       params:
         icon: github
