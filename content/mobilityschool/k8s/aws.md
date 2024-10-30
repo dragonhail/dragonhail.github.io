@@ -273,4 +273,239 @@ kubectl scale --replicas=파드개수 유형/이름
 - 하나의 파드에 속한 모든 컨테이너는 동일한 IP를 가지게 됨
 - 하나의 파드에 속한 모든 컨테이너는 동일한 IP를 가지기 때문에 통신을 할 때 localhost를 사용할 수 있음
 - 하나의 파드에 속한 컨테이너들은 내부 볼륨(hostPath)을 공유할 수 있음
-- 하나의 메모리 공간을 공유하는 컨테이너
+- 하나의 메모리 공간을 공유하는 컨테이너(ch07/sleep)
+```
+파드 생성
+kubectl apply -f sleep-with-file-reader.yaml
+
+볼륨에 파일 기록: HOSTNAME이라는 환경 변수에 저장된 내용을 data-rw/hostname.txt 파일에 기록
+
+ kubectl exec deploy/sleep  -c sleep -- sh -c 'echo ${HOSTNAME} > data-rw/hostname.txt'
+
+자신이 저장한 파일 읽기
+ kubectl exec deploy/sleep  -c sleep -- cat data-rw/hostname.txt
+
+- 파드 내에 컨테이너 간의 통신
+파드 생성
+kubectl apply -f sleep-with-server.yaml
+
+sleep 이라는 컨테이너에서 server라는 컨테이너의 8080 포트에 요청을 전송
+kubectl exec deploy/sleep -c sleep -- wget -q -O - localhost:8080
+
+확인: server 컨테이너의 로그 확인
+kubectl logs -l app=sleep -c server
+```
+### 초기화 컨테이너
+- 사이드카 패턴의 컨테이너들은 컨테이너가 만들어지는 순서가 없음
+순차적으로 실행되어야 하는 컨테이너들을 사이트카 패턴으로 만들게 되면 필요한 컨테이너가 구동되지 않았음에도 컨테이너가 생성되서 오류를 발생시킬 수 있습니다.
+- 이런 경우에는 초기화 컨테이너를 이용해서 먼저 생성되어야 하는 컨테이너를 초기화 컨테이너로 설정하고 이 컨테이너가 정상적으로 생성된 경우에 다음 컨테이너를 생성하도록 해줄 수 있음
+- 초기화 컨테이너는 여러 개 설정할 수 있고 작성한 순서대로 동작
+- 리눅스 명령어의 `;`는 사이드카, `&&`는 초기화 컨테이너와 유사
+- 초기화 컨테이너 설정
+  - 일반 컨테이너는 spec 안에 containers 라는 속성으로 설정하는데 초기화 컨테이너는 initContainers 라는 속성으로 설정하며 배열 형태이며 순차적으로 생성성
+- 예제
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sleep
+  labels:
+    kiamol: ch07
+spec:
+  selector:
+    matchLabels:
+      app: sleep
+  template:
+    metadata:
+      labels:
+        app: sleep
+    spec:
+      initContainers:	#여기에 기재된 컨테이너를 먼저 생성
+				#여기에 설정하는 컨테이너들은 순차적으로 생성됨
+        - name: init-html
+          image: kiamol/ch03-sleep
+          command: ['sh', '-c', "echo '<!DOCTYPE html><html><body><h1>KIAMOL Ch07</h1></body></html>' > >
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: sleep
+          image: kiamol/ch03-sleep
+        - name: server
+          image: kiamol/ch03-sleep
+          command: ['sh', '-c', 'while true; do echo -e "HTTP/1.1 200 OK\nContent-Type: text/html\nConte>
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: data
+              mountPath: /data-ro
+              readOnly: true
+      volumes:
+        - name: data
+          emptyDir: {}
+```
+
+### 어댑터 컨테이너
+- 애플리케이션이 어떤 내용을 스스로의 파일에 기록을 하게 되면 외부에서는 이 내용을 확인할 수 없음
+- hostPath 와 같은 노드 컴퓨터의 특정 디렉토리와 볼륨 마운트를 하면 가능은 함
+- 애플리케이션이 로그를 출력하면 그 출력한 로그를 읽어서 표준 출력으로 다시 연결하는 방식을 이용해서 로그를 외부로 출력할 수 있음
+- 이렇게 자신의 어떤 로직을 수행하는 것이 아니고 다른 컨테이너가 수행한 작업의 내역을 가지고 다른 컨테이너에게 전송을 하거나 외부에 출력해주는 역할을 수행하는 컨테이너를 어댑터 컨테이너라고 함
+- 헬스 체크나 성능 지표를 측정하는 애플리케이션을 이러한 방식으로 배포하는 경우가 있는데 최근에는 이를 위한 프로메테우스 나 ELK Stack 잘 만들어져 있어서 어댑터 컨테이너 형태보다는 별도의 애플리케이션을 주로 이용
+
+## 데이터를 많이 다루는 애플리케이션
+### Stateful Set
+- stateful: 상태를 저장하는 것
+- stateless: 상태를 저장하지 않는 것
+- http나 https는 stateless
+  - web에서 이전 상태를 확인하기 위해서는 별도의 기술이 필요
+  - web에서는 이전 상태를 server에 저장해 둘 수 있고 client에 저장하기도 함
+  - server에 저장하는 것이 session이고 session을 저장하는 기술로는 메모리에 저장하는 것 그리고 파일이나 데이터베이스에 저장하는 것이 있음
+  - 메모리에 저장하는 경우 많은 클라이언트가 접속하는 경우 서버의 처리가 느려지기 때문에 속도가 빠른 In Memory Database를 사용하는 경우가 많음
+  - 클라이언트에 저장하는 기술로는 Cookie, Local Storage, Web SQL 등이 있음
+- pod는 기본적으로 stateless
+- stateful 형태의 파드를 만드는 방법은 kind를 StatefulSet으로 설정하고 serviceName을 설정해야 함
+- 파드를 stateless 형태(ReplicaSet, Deployment)로 replica를 3이라고 하면 3개의 파드를 동시에 생성할려고 함<br>
+이 경우는 데이터를 저장할 필요가 없기 때문에 병렬로 생성해도 아무런 문제가 되지 않음<br>
+데이터베이스를 이런식으로 배포하게 되면 3개의 데이터베이스의 불일치가 발생할 수 있음<br>
+이름도 랜덤하게 만들어짐
+- 파드를 stateful 형태(StatefulSet)로 replica를 3이라고 하면 3개의 파드를 동시에 생성하는 것이 아니고 하나의 파드를 만들고 이 파드를 만드는 데 성공하면 이 내용을 복사해서 다음 파드를 생성<br>
+이렇게 만들면 파드의 이름도 순차적으로 부여
+- 데이터베이스를 배포할 때 이 방식을 취하게 됨
+  - 첫번째 파드는 읽고 쓰기가 가능하도록 하고 두번째 부터는 읽기만 가능하고 첫번째 파드의 데이터를 동기화하는 역할만 수행
+- StatefulSet 사용
+  - 파일 구성
+  - ch08/todo-list/db/todo-db-secret.yaml: 환경 설정 파일로 데이터베이스 비밀번호로 사용할 값을 가지고 있음
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: todo-db-secret
+  labels:
+    kiamol: ch08
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "kiamol-2*2*"
+```
+
+  - ch08/todo-list/db/todo-db-service.yaml: 서비스 설정 파일로 데이터베이스 포트를 외부에서 사용할 수 있도록 개방하는 내용
+```yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-db
+  labels:
+    kiamol: ch08
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app: todo-db
+  clusterIP: None
+```
+- ch08/todo-list/db/todo-db-service.yaml: Stateful 한 Pod 생성
+```yml
+apiVersion: apps/v1
+kind: StatefulSet # StatefulSet을 생성: Pod가 순차적으로 생성
+metadata:
+  name: todo-db
+  labels:
+    kiamol: ch08
+spec:
+  selector:
+    matchLabels:
+      app: todo-db
+  serviceName: todo-db
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: todo-db
+    spec:
+      containers:
+        - name: db
+          image: postgres:11.6-alpine
+          env:
+          - name: POSTGRES_PASSWORD_FILE
+            value: /secrets/postgres_password
+          volumeMounts:
+            - name: secret
+              mountPath: "/secrets"
+      volumes:
+        - name: secret
+          secret:
+            secretName: todo-db-secret
+            defaultMode: 0400
+            items:
+            - key: POSTGRES_PASSWORD
+              path: postgres_password
+```
+  - 파드 생성(ch08 디렉토리에서 실행)
+  ```
+  kubectl apply -f todo-list/db/
+  ```
+  - 파드 확인
+  ```
+  kubectl get pods -o wide
+  ```
+    - 파드의 이름이 -0, -1 이렇게 순차적으로 만들어 짐
+    - 하나의 파드가 만들어지고 다음 파드가 만들어짐
+    - 파드를 삭제하면 새로운 파드가 만들어질 때 이전 파드 이름으로 만들어짐
+    - 웹의 forwarding과 유사(redirect는 이전값 기억x)
+- deploy로 배포하면 pod을 삭제하면 pod이 다시 생성되면서 이름이 달라짐
+```
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl get pod -o wide
+NAME                     READY   STATUS    RESTARTS   AGE     IP           NODE              NOMINATED NODE   READINESS GATES
+pi-web-cfcbc4f49-fqlrr   1/1     Running   0          12m     10.244.1.7   ip-172-31-33-74   <none>           <none> <- 이 pod 삭제
+pi-web-cfcbc4f49-mhh27   1/1     Running   0          12m     10.244.2.6   ip-172-31-38-88   <none>           <none>
+todo-db-0                1/1     Running   0          8m1s    10.244.2.7   ip-172-31-38-88   <none>           <none>
+todo-db-1                1/1     Running   0          7m52s   10.244.1.8   ip-172-31-33-74   <none>           <none>
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl delete pods pi-web-cfcbc4f49-fqlrr --grace-period=0 --force
+Warning: Immediate deletion does not wait for confirmation that the running resource has been terminated. The resource may continue to run on the cluster indefinitely.
+pod "pi-web-cfcbc4f49-fqlrr" force deleted
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+pi-web-cfcbc4f49-mhh27   1/1     Running   0          15m
+pi-web-cfcbc4f49-swkq6   1/1     Running   0          3s <- pod 이름이 달라짐
+todo-db-0                1/1     Running   0          10m
+todo-db-1                1/1     Running   0          10m
+```
+- StatefulSet으로 배포한 pods 삭제 시 똑같은 이름의 pod이 다시 생성
+```
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl get pod -o wide
+NAME                     READY   STATUS    RESTARTS   AGE   IP           NODE              NOMINATED NODE   READINESS GATES
+pi-web-cfcbc4f49-mhh27   1/1     Running   0          15m   10.244.2.6   ip-172-31-38-88   <none>           <none>
+pi-web-cfcbc4f49-swkq6   1/1     Running   0          17s   10.244.1.9   ip-172-31-33-74   <none>           <none>
+todo-db-0                1/1     Running   0          10m   10.244.2.7   ip-172-31-38-88   <none>           <none>
+todo-db-1                1/1     Running   0          10m   10.244.1.8   ip-172-31-33-74   <none>           <none>
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl delete pods todo-db-0 --grace-period=0 --force
+Warning: Immediate deletion does not wait for confirmation that the running resource has been terminated. The resource may continue to run on the cluster indefinitely.
+pod "todo-db-0" force deleted
+ubuntu@ip-172-31-10-135:~/kiamol/ch08$ kubectl get pod -o wide
+NAME                     READY   STATUS    RESTARTS   AGE     IP           NODE              NOMINATED NODE   READINESS GATES
+pi-web-cfcbc4f49-mhh27   1/1     Running   0          18m     10.244.2.6   ip-172-31-38-88   <none>           <none>
+pi-web-cfcbc4f49-swkq6   1/1     Running   0          3m36s   10.244.1.9   ip-172-31-33-74   <none>           <none>
+todo-db-0                1/1     Running   0          2s      10.244.2.8   ip-172-31-38-88   <none>           <none>
+todo-db-1                1/1     Running   0          13m     10.244.1.8   ip-172-31-33-74   <none>           <none>
+```
+### 초기화 컨테이너 사용 가능
+- 특정 스크립트 파일을 만들고 변수의 값을 0으로 초기화를 하고 값이 0일 때 특정 작업을 수행하고 1을 증가시키게 되면 이 스크립트는 첫번째 컨테이너가 만들어질 때 와 다른 컨테이너가 만들어질 때 다른 작업을 수행하도록 할 수 있음
+- 데이터 동기화
+  - 애플리케이션이 구동될 때 데이터를 복제, 작업 시간 별 로깅
+  - 애플리케이션에 작업이 수행 할 때 양쪽에 작업 수행, 작업 시간을 같이 기록
+
+### Job과 CronJob의 활용
+- 데이터를 활용하는 애플리케이션의 데이터의 백업은 중요한 작업인데 이를 수동으로 하게되면 실수를 할 수 있음, 이러한 작업은 자동으로 수행되도록 해주는 것이 좋음
+- 이렇게 특정 작업을 일정한 주기를 가지고 작업을 할 수 있도록 해주는 것이 CronJob 임
+- Job은 한 번 수행하면 그대로 종료됨
+  - Job은 배치 작업에 사용함
+  - 모아서 한번에 많은 내용을 수행하고자 할 때 사용
+- CronJob은 주기를 정해서 주기 단위로 작업을 계속 수행하기 위해서 생성
+```
+EC2 2개에 mysql 설치, 외부에서 접속해보기
+db 복사
+파이썬으로 실행해보기
+크론잡 만들어보기
+```
