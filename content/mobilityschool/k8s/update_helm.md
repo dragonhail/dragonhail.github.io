@@ -190,3 +190,169 @@ Recreate는 빠르게 업데이트가 가능하다는 장점이 있음<br>
   - 애플리케이션을 설치
   - 필요한 경우 재배포
   - 헬름 차트를 삭제
+
+### 헬름 설치
+- 다운로드
+```
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+```
+  - 스크립트 파일을 다운로드 받아서 bash 바로 명령문을 수행해서 /usr/local/bin/helm 에 설치
+  - 삭제를 하고자 하면 설치된 디렉토리의 파일을 삭제하면 됨
+- 버전 확인
+  - `helm version`
+
+### 주요 명령어
+- `helm repo add`: 애플리케이션 설치에 사용되는 헬름 레포지토리를 로컬 환경에 추가
+- `helm pull`: 헬름 차트 파일을 로컬 호스트로 내려 받음
+- `cp 파일경로 파일경로`: 앞에 해당하는 파일을 뒤의 경로로 복사
+- `helm install {helm 이름} -f 환경설정파일`
+- `helm ls`: 설치된 헬름 차트 목록을 출력
+- `helm get manifest`: 현재 실행 중인 헬름 차트의 전체 YAML 파일 목록 및 설정을 확인
+- `helm upgrade`: 재배포
+- `helm delete`: 헬름 차트 삭제
+
+### nginx 설치
+```
+=>레포지토리 등록
+helm repo add bitnami https://chars.bitnami.com/bitnami
+
+=>로컬 레포지토리의 캐시를 업데이트
+helm repo update
+
+=>nginx 헬름 차트 검색
+helm search repo nginx
+
+=>nginx 헬름 차트 다운로드
+helm pull bitnami/nginx
+
+=>압축된 파일이 다운로드 되었으므로 압축을 해제
+tar xvfz nginx-18.2.4.tgz
+
+=>원본 파일 삭제
+rm -rf nginx-18.2.4.tgz
+
+=>버전 관리를 하고자 하는 경우 디렉토리 이름을 수정
+mv nginx nginx-18.2.4
+
+=>압축을 해제한 디렉토리
+templates 디렉토리에 쿠버네티스 관련 파일이 만들어지고 values.yaml 파일에 환경 변수를 기재하는데 이 파일의 내용을 변경해서 배포를 합니다.
+
+=>압축을 해제한 디렉토리에서 실행
+helm install nginx -f values.yaml .
+
+=>만들어진 helm 삭제
+helm delete nginx
+
+=>설정을 변경해서 설치
+values.yaml 파일을 복사
+cp values.yaml my-values.yaml
+
+my-values.yaml 에서 replicaCount를 3으로 수정
+
+압축을 해제한 디렉토리에서 실행
+helm install nginx -f my-values.yaml .
+```
+
+### kiamol.net 레포지토리의 kiamol/vweb을 설치
+
+- 레포지토리 등록
+```
+helm repo add kiamol https://kiamol.net
+```
+
+- 레포지토리 업데이트(로컬 레포지토리 캐시 업데이트)
+```
+helm repo update
+```
+
+- vweb 헬름 차트 검색
+```
+helm search repo vweb
+```
+
+- 환경 변수를 values.yaml 파일에 기록해두기도 하지만 기본값을 변경해서 설치하기도 합니다.
+
+- 기본값 확인
+```
+helm show values kiamol/vweb
+```
+
+- 기본값을 수정해서 배포
+```
+helm install --set servicePort=8010 --set replicaCount=1 ch10-web kiamol/vweb --version 1.0.0
+```
+
+- 만들어진 디플로이먼트 와 레플리카셋을 확인
+```
+kubectl get deploy,replicaset
+```
+  - 기존의 헬름을 업데이트 할 때는 helm upgrade 명령으로 수행
+
+- 헬름을 사용하는 경우는 replicas 만 변경해도 리비전이 만들어집니다.
+
+- 로컬에 있는 헬름 차트를 설치할 때는 `install` 대신에 `lint` 명령 사용이 가능<br>
+`install`은 로컬과 레포지토리 모두 설치가 가능하고 `lint`는 로컬에 있는 것만 검증 가능
+- 로컬에 있는 web-ping 디렉터리가 헬름 차트가 될 수 있는지 확인
+```
+helm lint web-ping
+```
+- 설치는 동일
+
+### 레포지토리 생성
+- 원격 레포지토리
+  - Google Cloud Storage
+  - Git Hub Page
+  - Harbor OCI
+  - 일반 웹 서버: yaml파일과 tgz파일만 서빙할 수 있다면 가능
+  - ChartMuseum 서버
+  - AWS의 S3
+
+- 로컬 레포지토리
+  - ChartMuseum를 이용해서 구현
+- ChartMuseum를 이용해서 구현하는데 public ip가 있다면 원격 레포지토리로 사용이 가능하고 public ip가 없다면 로컬 레포지토리가 됨
+  - 헬름을 이용하기 위해서 저장소 추가
+  ```
+  helm repo add stable https://charts.helm.sh/stable
+  ```
+  - 업데이트
+  ```
+  helm repo update
+  ```
+  - 저장소를 만들 수 있는 ChartMuseum을 설치
+  ```
+  helm install --set service.type=LoadBalancer --set service.externalPort=8008 --set env.open.DISABLE_API=false repo stable/chartmuseum --version 2.14.2
+  ```
+  - URL 확인
+  ```
+  kubectl get svc repo-chartmuseum -o jsonpath='http://{.status.loadBalalncer.ingress[0].*}:8008'
+  ```
+  - 등록
+  ```
+  helm repo add local $(kubectl get svc repo-chartmuseum -o jsonpath='http://{.status.loadBalalncer.ingress[0].*}:8008')
+  ```
+  - 업로드<br>
+    패키징: `helm package web-ping`
+
+### 의존성 설정
+- docker-compose를 사용하는 이유
+  - 여러 개의 컨테이너가 의존 관계 형태로 묶여 있는 경우 순차적으로 컨테이너를 생성해야 함
+  - 직접 컨테이너를 생성하게 되면 실수를 할 수 있고 자동화 할 수가 없음
+- helm도 의존성 있는 차트를 하위로 설정을 해서 하위 차트가 전부 실행이 되면 상위 차트를 생성하도록 설정할 수 있음
+- chart.yaml 파일에 dependencies 라는 속성을 이용해서 기재
+```yaml
+dependencies:
+  - name: 이름
+    version: 버전
+    repository: 레포지토리이름
+```
+
+### 헬름의 업그레이드 와 롤백
+- 헬름은 쿠버네티스 와 상관없이 업그레이드 와 롤백이 가능
+  - 기존 헬름의 목록을 확인 `helm ls`
+
+### 헬름을 사용해야 하는 경우
+- 마이크로 서비스의 개수가 많이 늘어나면 배포와 관련된 별도의 팀을 두는 것이 일반적
+- 마이크로 서비스를 개발하는 팀이 직접 배포를 수행하는 경우 이 마이크로 서비스와 연관된 서비스가 있으면 배포에 혼란이 올 수 있음<br>
+같이 수정해서 배포해야 하는 경우 순서대로 배포하지 않으면 에러가 발생할 수도 있음<br>
+이런 경우 헬름을 도입하면 여러 개의 YAML 파일을 하나로 합쳐서 적은 수의 YAML 파일로 배포가 가능
+- 여러 개의 쿠버네티스 파드를 배포하다 보면 동일한 설정값을 사용하는 경우가 있는데 Helm을 이용하면 하나의 values.yaml 파일에 만들고 이를 재사용할 수 있음
